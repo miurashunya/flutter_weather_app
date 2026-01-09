@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.flutter_weather_app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 33
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
