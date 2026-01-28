@@ -5,26 +5,37 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_weather_app/main.dart';
+import 'package:flutter_weather_app/services/weather_service.dart';
+import 'package:flutter_weather_app/models/weather_model.dart';
+
+class _FakeProvider implements IWeatherProvider {
+  final WeatherModel model;
+  _FakeProvider(this.model);
+  @override
+  Future<WeatherModel> getCurrentWeather(double lat, double lon) async => model;
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('HomeView shows instruction text', (WidgetTester tester) async {
+    // Provide a fake WeatherService so widget build doesn't access dotenv or device APIs.
+    final fakeModel = WeatherModel(
+      weatherType: WeatherType.clear,
+      description: 'clear sky',
+    );
+    final fakeService = WeatherService(_FakeProvider(fakeModel));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Build our app with ProviderScope overriding the weatherServiceProvider.
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [weatherServiceProvider.overrideWithValue(fakeService)],
+        child: const MyApp(),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that instruction text is shown.
+    expect(find.text('ボタンを押して現在の天気を取得してください'), findsOneWidget);
   });
 }
