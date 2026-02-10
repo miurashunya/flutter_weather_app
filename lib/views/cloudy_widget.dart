@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:weather_animation/weather_animation.dart';
 
+/// 曇り天気の背景アニメーションウィジェット
+///
+/// グレーのグラデーション背景に白い雲のアニメーションを表示します。
 class CloudyWidget extends StatelessWidget {
-  /// 背景グラデーションと白い雲のアニメーションを表示するウィジェット
+  /// 曇り天気の背景アニメーションウィジェットを生成する
   const CloudyWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
     return WrapperScene(
-      colors: [Color(0xFF616161), Color.fromARGB(255, 99, 98, 98)],
-      children: [
-        const CloudWidget(
+      colors: const [Color(0xFF616161), Color(0xFF636262)],
+      children: const [
+        // 大きめの雲（左上）
+        CloudWidget(
           cloudConfig: CloudConfig(
             size: 250.0,
             color: Color.fromARGB(100, 231, 231, 231),
@@ -27,7 +31,8 @@ class CloudyWidget extends StatelessWidget {
             slideCurve: Cubic(0.40, 0.00, 0.20, 1.00),
           ),
         ),
-        const CloudWidget(
+        // 小さめの雲（右下）
+        CloudWidget(
           cloudConfig: CloudConfig(
             size: 160.0,
             color: Color.fromARGB(100, 231, 231, 231),

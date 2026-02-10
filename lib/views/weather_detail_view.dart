@@ -1,46 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:weather_animation/weather_animation.dart';
 import '../models/weather_model.dart';
+import '../utils/weather_type_extension.dart';
 import 'cloudy_widget.dart';
 import 'weather_model_widget.dart';
 
+/// 天気の詳細情報を表示する画面ウィジェット
 class WeatherDetailView extends StatelessWidget {
+  /// 表示対象の天気データ
   final WeatherModel model;
-  const WeatherDetailView({super.key, required this.model});
 
-  WeatherScene _mapToScene(WeatherType type) {
-    switch (type) {
-      case WeatherType.clear:
-        return WeatherScene.scorchingSun;
-      case WeatherType.clouds:
-        return WeatherScene.sunset;
-      case WeatherType.rain:
-      case WeatherType.drizzle:
-        return WeatherScene.rainyOvercast;
-      case WeatherType.thunderstorm:
-        return WeatherScene.stormy;
-      case WeatherType.snow:
-        return WeatherScene.snowfall;
-      case WeatherType.mist:
-      case WeatherType.fog:
-        return WeatherScene.weatherEvery;
-      default:
-        return WeatherScene.weatherEvery;
-    }
-  }
+  /// 天気の詳細情報を表示する画面ウィジェットを生成する
+  ///
+  /// [model] 表示する天気データ
+  const WeatherDetailView({super.key, required this.model});
 
   @override
   Widget build(BuildContext context) {
-    final scene = _mapToScene(model.weatherType);
     return Scaffold(
       appBar: AppBar(title: Text(model.weatherType.label)),
       body: Stack(
         fit: StackFit.expand,
         children: [
+          // 曇りは専用ウィジェット、それ以外はアニメーションシーン
           if (model.weatherType == WeatherType.clouds)
             const CloudyWidget()
           else
-            scene.sceneWidget,
+            model.weatherType.toScene().sceneWidget,
           Center(child: WeatherModelWidget(model: model)),
         ],
       ),

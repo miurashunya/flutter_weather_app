@@ -11,16 +11,28 @@ import '../models/weather_model.dart';
 ///   例: `ProviderScope(overrides: [weatherServiceProvider.overrideWithValue(fakeService)])`.
 final weatherServiceProvider = Provider.autoDispose((ref) => WeatherService());
 
+/// 天気情報プロバイダーのインターフェース
 abstract class IWeatherProvider {
+  /// 指定した緯度・経度の現在の天気情報を取得する
+  ///
+  /// [lat] 緯度, [lon] 経度
   Future<WeatherModel> getCurrentWeather(double lat, double lon);
 }
 
+/// OpenWeatherMap API を使用した天気情報プロバイダー実装
 class OpenWeatherProvider implements IWeatherProvider {
   final WeatherFactory _wf;
 
+  /// OpenWeatherMap API キーを使用して天気情報プロバイダーを生成する
+  ///
+  /// [apiKey] OpenWeatherMap API キー。空文字の場合は [ArgumentError] をスローします。
   OpenWeatherProvider(String apiKey) : _wf = WeatherFactory(apiKey) {
     if (apiKey.isEmpty) {
-      throw Exception('OPENWEATHER_API_KEY is not set');
+      throw ArgumentError.value(
+        apiKey,
+        'apiKey',
+        'OPENWEATHER_API_KEY が設定されていません',
+      );
     }
   }
 
@@ -31,15 +43,23 @@ class OpenWeatherProvider implements IWeatherProvider {
   }
 }
 
+/// 天気情報を取得するサービスクラス
 class WeatherService {
   final IWeatherProvider _provider;
 
+  /// 天気情報サービスを生成する
+  ///
+  /// [provider] を省略した場合は [OpenWeatherProvider] を使用します。
+  /// テスト時はフェイク実装を渡してください。
   WeatherService([IWeatherProvider? provider])
     : _provider =
           provider ??
           OpenWeatherProvider(dotenv.env['OPENWEATHER_API_KEY'] ?? '');
 
-  Future<WeatherModel> getCurrentWeather(double lat, double lon) async {
-    return await _provider.getCurrentWeather(lat, lon);
+  /// 指定した緯度・経度の現在の天気情報を取得する
+  ///
+  /// [lat] 緯度, [lon] 経度
+  Future<WeatherModel> getCurrentWeather(double lat, double lon) {
+    return _provider.getCurrentWeather(lat, lon);
   }
 }

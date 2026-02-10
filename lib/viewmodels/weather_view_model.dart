@@ -18,13 +18,21 @@ final weatherViewModelProvider =
       ),
     );
 
+/// 天気画面の UI 状態を表すデータクラス
 class WeatherState {
+  /// データ取得中かどうか
   final bool isLoading;
+
+  /// 取得済みの天気データ（未取得時は null）
   final WeatherModel? weather;
+
+  /// エラーメッセージ（正常時は null）
   final String? error;
 
+  /// 天気画面の UI 状態を生成する
   WeatherState({this.isLoading = false, this.weather, this.error});
 
+  /// 指定したフィールドを上書きした新しい [WeatherState] を返す
   WeatherState copyWith({
     bool? isLoading,
     WeatherModel? weather,
@@ -38,13 +46,19 @@ class WeatherState {
   }
 }
 
+/// 天気画面の状態を管理する ViewModel
 class WeatherViewModel extends StateNotifier<WeatherState> {
   final LocationService _locationService;
   final WeatherService _weatherService;
 
+  /// [LocationService] と [WeatherService] を受け取って ViewModel を生成する
   WeatherViewModel(this._locationService, this._weatherService)
     : super(WeatherState());
 
+  /// 現在位置の天気情報を取得して状態を更新する
+  ///
+  /// 取得中は [WeatherState.isLoading] が `true` になります。
+  /// エラー時は [WeatherState.error] にメッセージが設定されます。
   Future<void> fetchWeather() async {
     try {
       state = state.copyWith(isLoading: true, error: null);

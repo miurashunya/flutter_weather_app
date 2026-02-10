@@ -1,14 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:weather_animation/weather_animation.dart';
 import '../models/weather_model.dart';
+import '../utils/weather_type_extension.dart';
 import '../viewmodels/weather_view_model.dart';
 import 'weather_samples_view.dart';
 import 'cloudy_widget.dart';
 import 'weather_model_widget.dart';
 
+/// ホーム画面ウィジェット
 class HomeView extends ConsumerStatefulWidget {
+  /// ホーム画面ウィジェットを生成する
   const HomeView({super.key});
 
   @override
@@ -16,39 +18,12 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView> {
-  bool _initialized = false;
-
-  WeatherScene _mapToScene(WeatherType type) {
-    // Map our WeatherType to a WeatherScene provided by weather_animation.
-    switch (type) {
-      case WeatherType.clear:
-        return WeatherScene.scorchingSun;
-      case WeatherType.clouds:
-        return WeatherScene.sunset;
-      case WeatherType.rain:
-      case WeatherType.drizzle:
-        return WeatherScene.rainyOvercast;
-      case WeatherType.thunderstorm:
-        return WeatherScene.stormy;
-      case WeatherType.snow:
-        return WeatherScene.snowfall;
-      case WeatherType.mist:
-      case WeatherType.fog:
-        return WeatherScene.weatherEvery;
-      default:
-        return WeatherScene.weatherEvery;
-    }
-  }
-
   @override
   void initState() {
     super.initState();
+    // アプリ起動時に自動で天気を取得
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_initialized) {
-        _initialized = true;
-        // アプリ起動時に自動で天気を取得
-        ref.read(weatherViewModelProvider.notifier).fetchWeather();
-      }
+      ref.read(weatherViewModelProvider.notifier).fetchWeather();
     });
   }
 
@@ -83,14 +58,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background: 曇りは専用ウィジェット（グラデ+白い雲）を使う
+          // 背景: 曇りは専用ウィジェット（グラデ+白い雲）、それ以外はアニメーションシーン
           if (type != null)
             (type == WeatherType.clouds)
                 ? const CloudyWidget()
-                : _mapToScene(type).sceneWidget
+                : type.toScene().sceneWidget
           else
             const SizedBox.shrink(),
-          // Foreground content
+          // コンテンツオーバーレイ
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -133,7 +108,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     height: 28,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.8,
-                      // 初回以外は色を変える
                       valueColor: AlwaysStoppedAnimation(Colors.black87),
                     ),
                   )

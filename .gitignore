@@ -46,3 +46,6 @@ app.*.map.json
 
 # Environment file (contains API keys)
 .env
+
+# Claude AI related
+/CLAUDE.md
