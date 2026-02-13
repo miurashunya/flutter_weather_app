@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import '../models/weather_model.dart';
 import '../utils/weather_type_extension.dart';
 import '../viewmodels/weather_view_model.dart';
@@ -78,6 +79,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   Icon(Icons.error, color: Colors.red[700], size: 48),
                   const SizedBox(height: 8),
                   Text(state.error ?? ''),
+                  // 永続的なパーミッション拒否の場合は設定アプリへ誘導
+                  if (state.isPermissionPermanentlyDenied) ...[
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: () => Geolocator.openAppSettings(),
+                      icon: const Icon(Icons.settings),
+                      label: const Text('設定を開く'),
+                    ),
+                  ],
                 ] else if (hasWeather) ...[
                   WeatherModelWidget(model: state.weather!),
                 ] else ...[

@@ -49,3 +49,7 @@ app.*.map.json
 
 # Claude AI related
 /CLAUDE.md
+
+# Serena MCP
+.serena/
+
