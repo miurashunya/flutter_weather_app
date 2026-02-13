@@ -8,8 +8,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_weather_app/main.dart';
-import 'package:flutter_weather_app/services/weather_service.dart';
-import 'package:flutter_weather_app/models/weather_model.dart';
+import 'package:flutter_weather_app/core/services/weather_service.dart';
+import 'package:flutter_weather_app/core/models/weather_model.dart';
 
 class _FakeProvider implements IWeatherProvider {
   final WeatherModel model;

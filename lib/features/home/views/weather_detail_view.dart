@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/weather_model.dart';
-import '../utils/weather_type_extension.dart';
+import '../../../core/models/weather_model.dart';
+import '../../../core/utils/weather_type_extension.dart';
 import 'cloudy_widget.dart';
 import 'weather_model_widget.dart';
 
