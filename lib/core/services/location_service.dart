@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart' as geo;
+
+import 'geocoding_service.dart';
 
 /// 位置情報パーミッションが拒否された際にスローされる例外
 class LocationPermissionDeniedException implements Exception {
@@ -16,20 +17,25 @@ class LocationPermissionDeniedException implements Exception {
       : '位置情報の権限が拒否されました';
 }
 
-/// [LocationService] を提供するプロバイダーです。
+/// [LocationService] を提供するプロバイダー
 ///
 /// - `autoDispose` を使用しており、利用されなくなったら自動的に解放されます。
 /// - テストでは `ProviderScope(overrides: [locationServiceProvider.overrideWithValue(...)])`
 ///   のようにオーバーライドしてモックを注入できます。
 final locationServiceProvider = Provider.autoDispose(
-  (ref) => LocationService(),
+  (ref) => LocationService(ref.watch(geocodingServiceProvider)),
 );
 
 /// 位置情報を取得するサービスクラス
 class LocationService {
+  final GeocodingService _geocodingService;
+
+  /// [GeocodingService] を受け取って位置情報サービスを生成する
+  const LocationService(this._geocodingService);
+
   /// 現在の端末位置を取得する
   ///
-  /// 位置情報の権限がない場合は [Exception] をスローします。
+  /// 位置情報の権限がない場合は [LocationPermissionDeniedException] をスローします。
   Future<Position> getCurrentPosition() async {
     final permission = await Geolocator.requestPermission();
     // 永続的拒否：設定アプリからのみ変更可能
@@ -43,17 +49,11 @@ class LocationService {
     return Geolocator.getCurrentPosition();
   }
 
-  /// 緯度・経度から住所情報（[geo.Placemark]）を取得する
+  /// 緯度・経度から地名を取得する
   ///
   /// [latitude] 緯度, [longitude] 経度
-  /// 該当する住所が見つからない場合は [StateError] をスローします。
-  Future<geo.Placemark> getPlacemark(double latitude, double longitude) async {
-    final placemarks = await geo.placemarkFromCoordinates(latitude, longitude);
-    if (placemarks.isEmpty) {
-      throw StateError(
-        '座標 ($latitude, $longitude) に対応する住所が見つかりませんでした',
-      );
-    }
-    return placemarks.first;
+  /// 取得できない場合は null を返します。
+  Future<String?> getLocationName(double latitude, double longitude) {
+    return _geocodingService.getPlaceName(latitude, longitude);
   }
 }

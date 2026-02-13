@@ -1,6 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geocoding/geocoding.dart' as geo;
-import '../../../core/models/weather_model.dart';
 import '../../../core/services/location_service.dart';
 import '../../../core/services/weather_service.dart';
 import 'weather_state.dart';
@@ -63,23 +61,16 @@ class WeatherViewModel extends StateNotifier<WeatherState> {
     final position = await _locationService.getCurrentPosition();
 
     // 天気取得と地名取得を並行実行
-    final results = await Future.wait([
-      _weatherService.getCurrentWeather(position.latitude, position.longitude),
-      _locationService.getPlacemark(position.latitude, position.longitude),
-    ]);
-    // 結果の取り出しと状態更新
-    final model = results[0] as WeatherModel;
-    final placemark = results[1] as geo.Placemark;
-
-    // 県（administrativeArea）と市（locality）を組み合わせて地名を生成
-    final parts =
-        [
-          placemark.administrativeArea,
-          placemark.locality,
-        ].where((s) => s != null && s.isNotEmpty).toList();
-
-    // 地名が空の場合は null にする
-    final locationName = parts.isNotEmpty ? parts.join(' ') : null;
+    final weatherFuture = _weatherService.getCurrentWeather(
+      position.latitude,
+      position.longitude,
+    );
+    final locationFuture = _locationService.getLocationName(
+      position.latitude,
+      position.longitude,
+    );
+    final model = await weatherFuture;
+    final locationName = await locationFuture;
 
     // 状態を更新
     state = state.copyWith(

@@ -59,7 +59,8 @@ lib/
 │   │   └── weather_model.dart              # WeatherModel, WeatherType enum
 │   ├── services/
 │   │   ├── weather_service.dart            # OpenWeatherMap API ラッパー
-│   │   └── location_service.dart           # GPS・ジオコーディング
+│   │   ├── location_service.dart           # GPS による現在位置取得
+│   │   └── geocoding_service.dart          # ジオコーディング（プラットフォーム切替）
 │   └── utils/
 │       └── weather_type_extension.dart     # WeatherType 拡張（toScene()）
 └── features/
@@ -110,14 +111,15 @@ HomeView
 HomeView
   └─ watches weatherViewModelProvider
        └─ WeatherViewModel (StateNotifier)
-            ├─ LocationService   → Geolocator で現在位置取得
-            └─ WeatherService    → OpenWeatherMap API で天気取得
+            ├─ LocationService      → Geolocator で現在位置取得
+            │     └─ GeocodingService → 座標 → 地名変換（リバースジオコーディング）
+            └─ WeatherService       → OpenWeatherMap API で天気取得
                   └─ IWeatherProvider（テスト時はフェイク実装に差替可）
 
 LocationWeatherView
   └─ watches locationWeatherViewModelProvider(SavedLocation)
        └─ LocationWeatherViewModel (StateNotifier)
-            └─ WeatherService    → 保存済み緯度経度で天気取得
+            └─ WeatherService       → 保存済み緯度経度で天気取得
 
 SavedLocationsView
   └─ watches savedLocationsViewModelProvider
@@ -127,7 +129,7 @@ SavedLocationsView
 LocationSearchView
   └─ watches locationSearchViewModelProvider
        └─ LocationSearchViewModel (StateNotifier)
-            ├─ geocoding         → 地名 → 座標変換
+            ├─ GeocodingService   → 地名 → 座標変換（OWM Geocoding API）
             └─ SavedLocationsService → 地域の保存
 ```
 
@@ -169,11 +171,29 @@ LocationSearchView
 |---|---|
 | `flutter_riverpod` | 状態管理 |
 | `flutter_dotenv` | 環境変数の読み込み |
-| `geolocator` | GPS による現在位置取得 |
-| `geocoding` | 座標 ↔ 住所変換 |
+| `geolocator` | GPS による現在位置取得（全プラットフォーム対応）|
+| `geocoding` | 座標 → 住所変換（Android・iOS・macOS のみ使用）|
 | `weather` | OpenWeatherMap API ラッパー |
 | `weather_animation` | 天気アニメーション背景 |
 | `shared_preferences` | 保存地域の永続化 |
+| `http` | OWM Geocoding API 呼び出し（Windows・Web のフォールバック）|
+
+---
+
+## プラットフォーム対応
+
+| 機能 | Android / iOS / macOS | Windows | Web |
+|---|---|---|---|
+| 現在地取得 | ✅ | ✅ | ✅（ブラウザ許可が必要）|
+| 地名表示（リバースジオコーディング）| ✅ `geocoding` パッケージ | ✅ OWM API | ✅ OWM API |
+| 地名検索（フォワードジオコーディング）| ✅ OWM API | ✅ OWM API | ✅ OWM API |
+| 設定アプリへの誘導ボタン | ✅ | ✅ | — （非対応のため非表示）|
+
+> **Windows での位置情報**: システム設定 → プライバシーとセキュリティ → 位置情報 でアプリのアクセスを許可してください。
+>
+> **Web でのビルド**: `flutter run -d chrome` で起動できます。位置情報は `https` または `localhost` 環境でのみ取得可能です。
+>
+> **ジオコーディングの精度**: Windows・Web では `geocoding` パッケージの代わりに OWM Geocoding API を使用するため、日本語の都道府県名が取得できない場合があります。
 
 ---
 

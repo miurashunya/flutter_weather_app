@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geocoding/geocoding.dart' as geo;
 
+import '../../../core/services/geocoding_service.dart';
 import '../models/saved_location.dart';
 import '../services/saved_locations_service.dart';
 
@@ -41,17 +41,19 @@ final locationSearchViewModelProvider = StateNotifierProvider.autoDispose<
   LocationSearchViewModel,
   LocationSearchState
 >(
-  (ref) =>
-      LocationSearchViewModel(ref.watch(savedLocationsServiceProvider)),
+  (ref) => LocationSearchViewModel(
+    ref.watch(geocodingServiceProvider),
+    ref.watch(savedLocationsServiceProvider),
+  ),
 );
 
 /// 地名検索の状態を管理する ViewModel
-class LocationSearchViewModel
-    extends StateNotifier<LocationSearchState> {
+class LocationSearchViewModel extends StateNotifier<LocationSearchState> {
+  final GeocodingService _geocodingService;
   final SavedLocationsService _service;
 
-  /// [SavedLocationsService] を受け取って ViewModel を生成する
-  LocationSearchViewModel(this._service)
+  /// [GeocodingService] と [SavedLocationsService] を受け取って ViewModel を生成する
+  LocationSearchViewModel(this._geocodingService, this._service)
     : super(const LocationSearchState());
 
   /// 地名で検索して候補一覧を状態に設定する
@@ -62,9 +64,9 @@ class LocationSearchViewModel
 
     state = state.copyWith(isLoading: true, error: null, results: []);
     try {
-      // geocodingで地名から座標を取得
-      final locations = await geo.locationFromAddress(query);
-      if (locations.isEmpty) {
+      // OWM Geocoding API で地名から候補リストを取得
+      final geoResults = await _geocodingService.searchLocations(query);
+      if (geoResults.isEmpty) {
         state = state.copyWith(
           isLoading: false,
           results: [],
@@ -73,35 +75,13 @@ class LocationSearchViewModel
         return;
       }
 
-      // 各座標から住所情報を取得してSavedLocationリストを構築
-      final results = <SavedLocation>[];
-      for (final loc in locations.take(5)) {
-        final placemarks = await geo.placemarkFromCoordinates(
-          loc.latitude,
-          loc.longitude,
-        );
-        if (placemarks.isEmpty) continue;
-        final pm = placemarks.first;
-
-        // 県・市を組み合わせて表示名を生成
-        final parts =
-            [
-              pm.administrativeArea,
-              pm.locality,
-              pm.subLocality,
-            ].where((s) => s != null && s.isNotEmpty).toList();
-
-        final name = parts.isNotEmpty ? parts.join(' ') : query;
-
-        results.add(
-          SavedLocation(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            name: name,
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-          ),
-        );
-      }
+      // GeocodingResult を SavedLocation に変換
+      final results = geoResults.map((r) => SavedLocation(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: r.name,
+        latitude: r.latitude,
+        longitude: r.longitude,
+      )).toList();
 
       state = state.copyWith(isLoading: false, results: results);
     } catch (e) {

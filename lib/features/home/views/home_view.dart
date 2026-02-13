@@ -45,12 +45,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
         actions: [
           // 保存済み地域一覧への遷移ボタン
           IconButton(
-            icon: const Icon(Icons.list_rounded),
+            icon: const Icon(Icons.list_alt),
+            iconSize: 36,
             color: Colors.white,
             tooltip: '保存した地域',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SavedLocationsView()),
-            ),
+            onPressed:
+                () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SavedLocationsView()),
+                ),
           ),
           // デバッグ時のみ表示
           if (!kReleaseMode)
@@ -90,7 +92,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   const SizedBox(height: 8),
                   Text(state.error ?? ''),
                   // 永続的なパーミッション拒否の場合は設定アプリへ誘導
-                  if (state.isPermissionPermanentlyDenied) ...[
+                  // Web は openAppSettings() 非対応のため表示しない
+                  if (state.isPermissionPermanentlyDenied && !kIsWeb) ...[
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
                       onPressed: () => Geolocator.openAppSettings(),

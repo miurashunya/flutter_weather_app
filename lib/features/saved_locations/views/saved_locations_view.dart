@@ -40,16 +40,11 @@ class _SavedLocationsViewState extends ConsumerState<SavedLocationsView> {
     final state = ref.watch(savedLocationsViewModelProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('保存した地域'),
-        actions: [
-          // 地域追加ボタン
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: '地域を追加',
-            onPressed: _navigateToSearch,
-          ),
-        ],
+      appBar: AppBar(title: const Text('保存した地域')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _navigateToSearch,
+        tooltip: '地域を追加',
+        child: const Icon(Icons.add),
       ),
       body: Builder(
         builder: (context) {
@@ -72,30 +67,33 @@ class _SavedLocationsViewState extends ConsumerState<SavedLocationsView> {
           }
           // 保存済み地域のリスト
           return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             itemCount: state.locations.length,
             itemBuilder: (context, index) {
               final location = state.locations[index];
-              return ListTile(
-                leading: const Icon(Icons.location_on),
-                title: Text(location.name),
-                // 削除ボタン
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete),
-                  tooltip: '削除',
-                  onPressed: () {
-                    ref
-                        .read(savedLocationsViewModelProvider.notifier)
-                        .delete(location.id);
+              return Card(
+                child: ListTile(
+                  leading: const Icon(Icons.location_on),
+                  title: Text(location.name),
+                  // 削除ボタン
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete),
+                    tooltip: '削除',
+                    onPressed: () {
+                      ref
+                          .read(savedLocationsViewModelProvider.notifier)
+                          .delete(location.id);
+                    },
+                  ),
+                  // 天気画面へ遷移
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => LocationWeatherView(location: location),
+                      ),
+                    );
                   },
                 ),
-                // 天気画面へ遷移
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => LocationWeatherView(location: location),
-                    ),
-                  );
-                },
               );
             },
           );
