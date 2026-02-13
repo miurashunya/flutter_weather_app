@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import '../models/weather_model.dart';
+import '../../../core/models/weather_model.dart';
 
 /// 天気モデルを表示するウィジェット
 class WeatherModelWidget extends StatelessWidget {
   final WeatherModel model;
 
+  /// 表示する地名（県・市）。null の場合は非表示
+  final String? locationName;
+
   /// 天気モデルを表示するウィジェット
-  const WeatherModelWidget({super.key, required this.model});
+  const WeatherModelWidget({super.key, required this.model, this.locationName});
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +75,22 @@ class WeatherModelWidget extends StatelessWidget {
             style: const TextStyle(color: Colors.white70),
             textAlign: TextAlign.center,
           ),
+        // 地名（県・市）の表示
+        if (locationName != null) ...[
+          const SizedBox(height: 16),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.location_on, color: Colors.white70, size: 16),
+              const SizedBox(width: 4),
+              Text(
+                locationName!,
+                style: const TextStyle(color: Colors.white70, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

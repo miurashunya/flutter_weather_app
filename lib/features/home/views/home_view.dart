@@ -2,9 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import '../models/weather_model.dart';
-import '../utils/weather_type_extension.dart';
+import '../../../core/models/weather_model.dart';
+import '../../../core/utils/weather_type_extension.dart';
 import '../viewmodels/weather_view_model.dart';
+import '../../saved_locations/views/saved_locations_view.dart';
 import 'weather_samples_view.dart';
 import 'cloudy_widget.dart';
 import 'weather_model_widget.dart';
@@ -42,6 +43,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
         elevation: 0,
         title: null,
         actions: [
+          // 保存済み地域一覧への遷移ボタン
+          IconButton(
+            icon: const Icon(Icons.list_rounded),
+            color: Colors.white,
+            tooltip: '保存した地域',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SavedLocationsView()),
+            ),
+          ),
           // デバッグ時のみ表示
           if (!kReleaseMode)
             IconButton(
@@ -89,7 +99,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     ),
                   ],
                 ] else if (hasWeather) ...[
-                  WeatherModelWidget(model: state.weather!),
+                  WeatherModelWidget(
+                    model: state.weather!,
+                    locationName: state.locationName,
+                  ),
                 ] else ...[
                   const Text('ボタンを押して現在の天気を取得してください'),
                 ],

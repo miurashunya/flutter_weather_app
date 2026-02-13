@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/weather_model.dart';
-import '../utils/weather_type_extension.dart';
+import '../../../core/models/weather_model.dart';
+import '../../../core/utils/weather_type_extension.dart';
 import 'weather_detail_view.dart';
 
 /// 全天気種別のアニメーションプレビュー画面

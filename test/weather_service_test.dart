@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_weather_app/services/weather_service.dart';
-import 'package:flutter_weather_app/models/weather_model.dart';
+import 'package:flutter_weather_app/core/services/weather_service.dart';
+import 'package:flutter_weather_app/core/models/weather_model.dart';
 
 class FakeProvider implements IWeatherProvider {
   final WeatherModel model;
