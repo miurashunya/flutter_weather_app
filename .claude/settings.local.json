@@ -6,7 +6,8 @@
       "mcp__serena__get_symbols_overview",
       "mcp__serena__find_symbol",
       "Bash(flutter analyze:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(flutter pub:*)"
     ]
   }
 }

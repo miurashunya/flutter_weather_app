@@ -8,6 +8,7 @@ import '../viewmodels/weather_view_model.dart';
 import '../../saved_locations/views/saved_locations_view.dart';
 import 'weather_samples_view.dart';
 import 'cloudy_widget.dart';
+import 'sunny_widget.dart';
 import 'weather_model_widget.dart';
 
 /// ホーム画面ウィジェット
@@ -27,6 +28,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(weatherViewModelProvider.notifier).fetchWeather();
     });
+  }
+
+  /// 天気種別に応じた背景ウィジェットを返す
+  Widget _getWeatherWidget(WeatherType type) {
+    return switch (type) {
+      WeatherType.clear => const SunnyWidget(),
+      WeatherType.clouds => const CloudyWidget(),
+      _ => type.toScene().sceneWidget,
+    };
   }
 
   @override
@@ -71,13 +81,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 背景: 曇りは専用ウィジェット（グラデ+白い雲）、それ以外はアニメーションシーン
-          if (type != null)
-            (type == WeatherType.clouds)
-                ? const CloudyWidget()
-                : type.toScene().sceneWidget
-          else
-            const SizedBox.shrink(),
+          // 背景: 晴れは専用ウィジェット（水色背景+単色太陽）、
+          // 曇りは専用ウィジェット（グラデ+白い雲）、それ以外はアニメーションシーン
+          type != null ? _getWeatherWidget(type) : const SizedBox.shrink(),
           // コンテンツオーバーレイ
           Center(
             child: Column(

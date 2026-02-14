@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_weather_app/features/home/views/sunny_widget.dart';
 import '../../../core/models/weather_model.dart';
 import '../../../core/utils/weather_type_extension.dart';
 import 'cloudy_widget.dart';
@@ -21,9 +22,13 @@ class WeatherDetailView extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 曇りは専用ウィジェット、それ以外はアニメーションシーン
+          // 曇りは専用ウィジェット
           if (model.weatherType == WeatherType.clouds)
             const CloudyWidget()
+          // 晴れは専用ウィジェット（水色背景+単色太陽）
+          else if (model.weatherType == WeatherType.clear)
+            const SunnyWidget()
+          // それ以外はアニメーションシーン
           else
             model.weatherType.toScene().sceneWidget,
           Center(child: WeatherModelWidget(model: model)),
