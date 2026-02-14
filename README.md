@@ -9,6 +9,7 @@
 
 - **現在地の天気取得** — 起動時・更新ボタン押下時に GPS で位置を取得し、天気情報を表示
 - **天気アニメーション背景** — 晴れ・雨・雪・雷雨など天気に応じた背景アニメーションが自動切替
+- **昼夜アニメーション切替** — 18時〜翌6時は夜モードに切替（晴れ夜は星空＋三日月、他天気は夜色背景）
 - **地域の保存** — 地名で検索した地域を登録し、SharedPreferences に永続保存
 - **保存地域の天気表示** — 登録した地域をタップすると、その地域の天気をアニメーション付きで表示
 - **天気サンプル一覧**（デバッグ時のみ）— 全天気種別のアニメーションをプレビューできる画面
@@ -62,18 +63,27 @@ lib/
 │   │   ├── location_service.dart           # GPS による現在位置取得
 │   │   └── geocoding_service.dart          # ジオコーディング（プラットフォーム切替）
 │   └── utils/
-│       └── weather_type_extension.dart     # WeatherType 拡張（toScene()）
+│       ├── weather_type_extension.dart     # WeatherType 拡張（toScene()）
+│       └── time_of_day_utils.dart          # 昼夜判定ユーティリティ
 └── features/
     ├── home/                               # 現在地天気フィーチャー
     │   ├── viewmodels/
-    │   │   ├── weather_state.dart          # WeatherState データクラス
+    │   │   ├── weather_state.dart          # WeatherState データクラス（UI状態）
     │   │   └── weather_view_model.dart     # WeatherViewModel (StateNotifier)
     │   └── views/
     │       ├── home_view.dart              # ホーム画面
-    │       ├── weather_detail_view.dart    # 天気詳細画面
-    │       ├── weather_samples_view.dart   # サンプル一覧画面（デバッグ）
     │       ├── weather_model_widget.dart   # 天気情報表示ウィジェット
-    │       └── cloudy_widget.dart          # 曇り専用背景ウィジェット
+    │       ├── weather_widgets/            # 天気別背景アニメーションウィジェット
+    │       │   ├── sunny_widget.dart       # 晴れ（水色背景＋単色太陽＋光線）
+    │       │   ├── night_widget.dart       # 晴れ夜（星空＋三日月）
+    │       │   ├── cloudy_widget.dart      # 曇り（昼: グレー / 夜: 紺色）
+    │       │   ├── rainy_widget.dart       # 雨・霧雨（昼夜切替）
+    │       │   ├── stormy_widget.dart      # 雷雨（昼夜切替）
+    │       │   ├── snowy_widget.dart       # 雪（昼夜切替）
+    │       │   └── misty_widget.dart       # 霧・その他（昼夜切替）
+    │       └── test_widgets/              # デバッグ専用画面
+    │           ├── weather_detail_view.dart  # 天気詳細画面
+    │           └── weather_samples_view.dart # サンプル一覧画面
     └── saved_locations/                    # 保存地域フィーチャー
         ├── models/
         │   └── saved_location.dart         # SavedLocation データクラス
@@ -88,6 +98,46 @@ lib/
             ├── location_search_view.dart   # 地名検索・追加画面
             └── location_weather_view.dart  # 特定地域の天気表示画面
 ```
+
+---
+
+## 天気アニメーション背景
+
+天気タイプと時刻（昼夜）の組み合わせで背景ウィジェットを切り替えます。
+
+### 昼夜判定
+
+`isNightTime()` 関数が `DateTime.now().hour` を参照し、**18時〜翌6時**を夜と判定します。
+
+### 切替テーブル
+
+| 天気タイプ | 昼（6時〜18時） | 夜（18時〜6時） |
+|---|---|---|
+| 晴れ | `SunnyWidget`（水色背景・単色太陽・光線アニメ） | `NightWidget`（星空・三日月） |
+| 曇り | `CloudyWidget`（グレー背景・白い雲） | `CloudyWidget`（紺色背景・青みがかった雲） |
+| 雨・霧雨 | `RainyWidget`（デフォルト色） | `RainyWidget`（暗いスレートブルー） |
+| 雷雨 | `StormyWidget`（デフォルト色） | `StormyWidget`（ほぼ漆黒） |
+| 雪 | `SnowyWidget`（デフォルト色） | `SnowyWidget`（暗い冬の夜空） |
+| 霧・その他 | `MistyWidget`（デフォルト色） | `MistyWidget`（深夜ブルー） |
+
+### カスタムウィジェットの仕様
+
+**`SunnyWidget`**
+- `WrapperScene` に水色グラデーション背景を設定
+- `SunWidget` のコア・中間・外側リングを同色に統一して単色に表示
+- `_SunRaysWidget`（`Ticker` ベース）で光線を描画。各光線がランダムな角速度・位相で独立して伸縮
+
+**`NightWidget`**
+- 深い紺色グラデーション背景
+- `_MoonPainter`（`CustomPaint`）: `saveLayer` + `BlendMode.clear` で三日月を描画
+- `_StarsWidget`（`Ticker` ベース）: 70個の星がそれぞれ独立したタイミングでまたたく
+
+**`CloudyWidget`（夜モード）**
+- `isNight` パラメータで背景色と雲の色を切り替え
+
+**`RainyWidget` / `StormyWidget` / `SnowyWidget` / `MistyWidget`**
+- `WrapperScene.weather(scene: ..., colors: isNight ? nightColors : null)` で昼夜の背景色を切り替え
+- アニメーション内容（雨粒・雷・雪など）はそのまま維持
 
 ---
 
