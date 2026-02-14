@@ -77,7 +77,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 ),
           ),
           // デバッグ時のみ表示
-          if (!kReleaseMode)
+          if (kDebugMode)
             IconButton(
               tooltip: 'Samples',
               color: Colors.white,
