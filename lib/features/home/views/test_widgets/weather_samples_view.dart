@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/models/weather_model.dart';
-import '../../../core/utils/weather_type_extension.dart';
+import '../../../../core/models/weather_model.dart';
+import '../../../../core/utils/weather_type_extension.dart';
 import 'weather_detail_view.dart';
 
 /// 全天気種別のアニメーションプレビュー画面
@@ -37,14 +37,9 @@ class _WeatherSampleCard extends StatelessWidget {
     return InkWell(
       onTap: () {
         // サンプルデータで詳細画面を表示
-        final model = WeatherModel(
-          weatherType: type,
-          description: type.label,
-        );
+        final model = WeatherModel(weatherType: type, description: type.label);
         Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => WeatherDetailView(model: model),
-          ),
+          MaterialPageRoute(builder: (_) => WeatherDetailView(model: model)),
         );
       },
       child: Card(

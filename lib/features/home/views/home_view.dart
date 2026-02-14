@@ -3,12 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/models/weather_model.dart';
-import '../../../core/utils/weather_type_extension.dart';
+import '../../../core/utils/time_of_day_utils.dart';
 import '../viewmodels/weather_view_model.dart';
 import '../../saved_locations/views/saved_locations_view.dart';
-import 'weather_samples_view.dart';
-import 'cloudy_widget.dart';
-import 'sunny_widget.dart';
+import 'test_widgets/weather_samples_view.dart';
+import 'weather_widgets/cloudy_widget.dart';
+import 'weather_widgets/misty_widget.dart';
+import 'weather_widgets/night_widget.dart';
+import 'weather_widgets/rainy_widget.dart';
+import 'weather_widgets/snowy_widget.dart';
+import 'weather_widgets/stormy_widget.dart';
+import 'weather_widgets/sunny_widget.dart';
 import 'weather_model_widget.dart';
 
 /// ホーム画面ウィジェット
@@ -30,12 +35,19 @@ class _HomeViewState extends ConsumerState<HomeView> {
     });
   }
 
-  /// 天気種別に応じた背景ウィジェットを返す
+  /// 天気種別と昼夜に応じた背景ウィジェットを返す
+  ///
+  /// 各天気ウィジェットが昼夜で背景色を切り替えます。
   Widget _getWeatherWidget(WeatherType type) {
+    final bool night = isNightTime();
     return switch (type) {
-      WeatherType.clear => const SunnyWidget(),
-      WeatherType.clouds => const CloudyWidget(),
-      _ => type.toScene().sceneWidget,
+      WeatherType.clear => night ? const NightWidget() : const SunnyWidget(),
+      WeatherType.clouds => CloudyWidget(isNight: night),
+      WeatherType.rain => RainyWidget(isNight: night),
+      WeatherType.drizzle => RainyWidget(isNight: night),
+      WeatherType.thunderstorm => StormyWidget(isNight: night),
+      WeatherType.snow => SnowyWidget(isNight: night),
+      _ => MistyWidget(isNight: night),
     };
   }
 
@@ -81,8 +93,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 背景: 晴れは専用ウィジェット（水色背景+単色太陽）、
-          // 曇りは専用ウィジェット（グラデ+白い雲）、それ以外はアニメーションシーン
+          // 背景: 天気タイプ × 昼夜で表示を切り替え
           type != null ? _getWeatherWidget(type) : const SizedBox.shrink(),
           // コンテンツオーバーレイ
           Center(

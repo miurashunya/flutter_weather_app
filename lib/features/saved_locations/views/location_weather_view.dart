@@ -5,7 +5,7 @@ import '../models/saved_location.dart';
 import '../../../core/models/weather_model.dart';
 import '../../../core/utils/weather_type_extension.dart';
 import '../viewmodels/location_weather_view_model.dart';
-import '../../home/views/cloudy_widget.dart';
+import '../../home/views/weather_widgets/cloudy_widget.dart';
 import '../../home/views/weather_model_widget.dart';
 
 /// 特定地域の天気を表示する画面ウィジェット
@@ -35,9 +35,7 @@ class _LocationWeatherViewState extends ConsumerState<LocationWeatherView> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(
-      locationWeatherViewModelProvider(widget.location),
-    );
+    final state = ref.watch(locationWeatherViewModelProvider(widget.location));
 
     final WeatherType? type = state.weather?.weatherType;
     final bool hasWeather = state.weather != null;
@@ -59,11 +57,14 @@ class _LocationWeatherViewState extends ConsumerState<LocationWeatherView> {
             icon: const Icon(Icons.autorenew_rounded),
             tooltip: '天気更新',
             onPressed:
-                () => ref
-                    .read(
-                      locationWeatherViewModelProvider(widget.location).notifier,
-                    )
-                    .fetchWeather(),
+                () =>
+                    ref
+                        .read(
+                          locationWeatherViewModelProvider(
+                            widget.location,
+                          ).notifier,
+                        )
+                        .fetchWeather(),
           ),
         ],
       ),
@@ -85,10 +86,7 @@ class _LocationWeatherViewState extends ConsumerState<LocationWeatherView> {
                 if (state.isLoading) ...[
                   const CircularProgressIndicator(color: Colors.white),
                   const SizedBox(height: 12),
-                  const Text(
-                    '取得中...',
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  const Text('取得中...', style: TextStyle(color: Colors.white)),
                 ] else if (state.error != null) ...[
                   Icon(Icons.error, color: Colors.red[700], size: 48),
                   const SizedBox(height: 8),
